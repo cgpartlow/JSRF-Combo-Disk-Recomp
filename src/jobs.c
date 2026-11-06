@@ -253,11 +253,69 @@ bool have_tools(void)
 void game_exe(char *out) { pjoin(out, g_paths.game, "jsrf_recomp" EXE); }
 void game_ini(char *out) { pjoin(out, g_paths.game, "jsrf.ini"); }
 
+/* The Sega GT + JSRF combo pack's XBE is the same game under another name:
+ * SegaJSRF.xbe in the game folder does as well as default.xbe. Everything
+ * below (the project, the runtime) reads default.xbe, so the first job that
+ * needs it makes default.xbe from SegaJSRF.xbe (a copy: the original stays).
+ * A default.xbe that is already there wins. */
+#define COMBO_XBE "SegaJSRF.xbe"
+
 bool have_xbe(void)
 {
     char x[LPATH];
     pjoin(x, g_paths.game, "default.xbe");
+    if (is_file(x)) return true;
+    pjoin(x, g_paths.game, COMBO_XBE);
     return is_file(x);
+}
+
+bool have_combo_xbe_only(void)
+{
+    char x[LPATH];
+    pjoin(x, g_paths.game, "default.xbe");
+    if (is_file(x)) return false;
+    pjoin(x, g_paths.game, COMBO_XBE);
+    return is_file(x);
+}
+
+static bool ensure_default_xbe(void)
+{
+    char d[LPATH], c[LPATH];
+    pjoin(d, g_paths.game, "default.xbe");
+    if (is_file(d)) return true;
+    pjoin(c, g_paths.game, COMBO_XBE);
+    if (!is_file(c)) return false;
+    if (!copy_file(c, d)) { logf_("Could not copy %s to default.xbe in %s", COMBO_XBE, g_paths.game); return false; }
+    logf_("%s is the combo pack's XBE: copied to default.xbe (the original stays).", COMBO_XBE);
+    return true;
+}
+
+/* The combo pack support: a few scripts (and the address map made from the
+ * two XBEs) that are built into this launcher (overlay_data.inc, made by
+ * tools/embed_overlay.py). They are written over the project after each
+ * download and before each job, so Update can't take them away and there is
+ * no folder to keep. A file is only written when it differs. */
+#include "overlay_data.inc"
+
+static void apply_overlay(void)
+{
+    if (!g_paths.have_source) return;
+    for (int i = 0; i < OVERLAY_COUNT; i++) {
+        char dst[LPATH], dir[LPATH];
+        pjoin(dst, g_paths.source, g_overlay[i].path);
+        size_t n = 0;
+        char *cur = read_file(dst, &n);
+        bool same = cur && n == g_overlay[i].len && !memcmp(cur, g_overlay[i].data, n);
+        free(cur);
+        if (same) continue;
+        snprintf(dir, sizeof dir, "%s", dst);
+        char *sl = strrchr(dir, '/');
+        char *bs = strrchr(dir, '\\');
+        if (bs && (!sl || bs > sl)) sl = bs;
+        if (sl) { *sl = 0; make_dirs(dir); }
+        if (!write_file(dst, g_overlay[i].data, g_overlay[i].len))
+            logf_("Could not write %s", g_overlay[i].path);
+    }
 }
 
 bool have_game_exe(void)
@@ -676,7 +734,8 @@ bool have_gen(void)
 static bool need_source_and_xbe(void)
 {
     if (!g_paths.have_source) { logf_("The project is not downloaded yet: Update -> Download."); return false; }
-    if (!have_xbe()) { logf_("default.xbe not found in %s", g_paths.game); return false; }
+    if (!ensure_default_xbe()) { logf_("default.xbe not found in %s", g_paths.game); return false; }
+    apply_overlay();
     return true;
 }
 
@@ -720,6 +779,17 @@ static bool do_generate(void)
     py_exe(py);
     pjoin(xbe, g_paths.game, "default.xbe");
     gen_dir(gen);
+    {
+        /* the combo pack's XBE: the project's files are translated to it (or put
+         * back for the standard one) before the inputs are counted, so the
+         * count below is the same afterwards */
+        char cp[LPATH];
+        pjoin3(cp, jr, "tools", "combo_port.py");
+        if (is_file(cp)) {
+            const char *av[] = { py, cp, "ensure", xbe, NULL };
+            if (!runv(jr, av)) return false;
+        }
+    }
     /* taken before: a file changing while it runs makes it run again next time */
     unsigned long long h = gen_inputs();
     PHASE("Generating code");
@@ -1108,6 +1178,7 @@ static bool do_update(void)
     remove_tree(old);
     remove_tree(dl);
     g_paths.have_source = true;
+    apply_overlay();
     char gd[LPATH];
     pjoin3(gd, g_paths.source, "jsrf_recomp", "game");
     if (strstr(g_paths.game, gd) == g_paths.game) logf_("Game files kept in %s", gd);
@@ -1136,6 +1207,7 @@ static bool do_tool(void)
     case TOOL_CHECK_XBE:
         /* default.xbe is the release the project is made for */
         PHASE("Checking default.xbe");
+        if (!ensure_default_xbe()) { logf_("default.xbe not found in %s", g_paths.game); return false; }
         pjoin3(tool, jr, "tools", "xbe_info.py");
         pjoin(arg, g_paths.game, "default.xbe");
         argv[2] = arg;

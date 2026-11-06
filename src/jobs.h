@@ -28,6 +28,7 @@ bool debug_menu_pref(void);               /* DEBUG_MENU=1: the Debug tab */
 
 /* what is there */
 bool have_xbe(void);
+bool have_combo_xbe_only(void);   /* SegaJSRF.xbe here, no default.xbe: it is copied when needed */
 bool have_game_exe(void);
 bool have_tools(void);
 bool have_gen(void);                      /* generated code is there (maybe not current) */

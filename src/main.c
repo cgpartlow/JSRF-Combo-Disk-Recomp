@@ -456,7 +456,10 @@ static void tab_play(struct nk_context *ctx)
     spacer(ctx, 10);
     /* in the order they are needed; a missing one links to where it is fixed */
     bool xbe = have_xbe(), exe = have_game_exe(), tools = have_tools();
-    if (req_line(ctx, "Game files", xbe, "default.xbe found", "default.xbe not found here: choose the game folder"))
+    if (req_line(ctx, "Game files", xbe,
+                 have_combo_xbe_only() ? "SegaJSRF.xbe found (the combo pack's: copied to default.xbe when needed)"
+                                       : "default.xbe found",
+                 "default.xbe (or SegaJSRF.xbe) not found here: choose the game folder"))
         choose_game_folder();
     if (req_line(ctx, "Project source", g_paths.have_source, "downloaded", "not downloaded yet: go to Update"))
         s_tab = TAB_UPDATE;
