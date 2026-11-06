@@ -31,7 +31,7 @@ The launcher closes once the game has started.
 This version of the launcher also works with the game files from the Xbox
 combo disc, whose game program is `SegaJSRF.xbe` instead of `default.xbe`.
 
-- Put the game files from **your own disc** in the game folder (`jsrf/`),
+- Put the game files (`SegaJSRF.xbe` and `Media` folder from the root disk folder) from **your own disc** in the game folder (`jsrf/`),
   with `SegaJSRF.xbe` in it. Nothing has to be renamed: if there is no
   `default.xbe`, the launcher makes one as a copy of `SegaJSRF.xbe` (the
   original stays). A `default.xbe` that is already there is used as it is.
@@ -118,3 +118,8 @@ Next to the launcher:
 | `build/` | the compiler's work files |
 | `launcher_log.txt` | the log of the last run (the one before: `launcher_log.txt.old`) |
 | `launcher.ini` | the launcher's settings: `BRANCH=test` makes Update download the `test` branch (missing = `main`); `DEBUG_MENU=1` shows the Debug tab |
+
+## Credits
+
+- The launcher and the Jet Set Radio Future recompilation: [Miggas](https://github.com/Miggas/JSRF-Recomp) (MIT license).
+- Sega GT + Jet Set Radio Future combo disc support: cgpartlow, developed with Claude (Anthropic).
