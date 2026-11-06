@@ -5,9 +5,10 @@ downloads the project, builds the game from your `default.xbe`, updates it,
 edits `jsrf.ini` and starts the game. Windows and Linux (Steam Deck included).
 Nothing has to be installed: it downloads its own tools.
 
-This branch is the launcher's code only. To play, download the launcher from
-the [Releases](https://github.com/Miggas/JSRF-Recomp/releases) page and see the
-README on the main branch.
+This is a fork of the launcher with support for the **Sega GT + Jet Set Radio
+Future combo disc** (see below). It downloads the project from
+[Miggas/JSRF-Recomp](https://github.com/Miggas/JSRF-Recomp); the original
+launcher and the instructions for playing are on that page.
 
 ## Controller
 
@@ -24,6 +25,30 @@ README on the main branch.
 In the settings lists, up / down go through the whole list and it scrolls along; up from the top of a list goes back to the tabs.
 
 The launcher closes once the game has started.
+
+## The Sega GT + Jet Set Radio Future combo disc
+
+This version of the launcher also works with the game files from the Xbox
+combo disc, whose game program is `SegaJSRF.xbe` instead of `default.xbe`.
+
+- Put the game files from **your own disc** in the game folder (`jsrf/`),
+  with `SegaJSRF.xbe` in it. Nothing has to be renamed: if there is no
+  `default.xbe`, the launcher makes one as a copy of `SegaJSRF.xbe` (the
+  original stays). A `default.xbe` that is already there is used as it is.
+- **Generate code** looks at which game program is in the folder. For the
+  combo disc's `SegaJSRF.xbe` it translates the project's analysis and
+  hand-written code to that version's addresses first; for the standard
+  `default.xbe` it puts the original files back. Build and Play are the
+  same for both.
+- The scripts and the address map this needs are built into the launcher
+  (`src/overlay_data.inc`) and written into `source/` after each Update and
+  before each Generate/Build, so Update does not take them away. The map holds
+  only addresses and checksums, no game code.
+- Only the combo disc's `SegaJSRF.xbe` and the standard NTSC `default.xbe`
+  are recognised. Any other version is refused with a message.
+- No game files are included or downloaded: you need your own disc.
+- Use **Update** for the project, but not **Update launcher**: it would put
+  the official launcher, without combo disc support, in place of this one.
 
 ## Updating the launcher
 
@@ -61,7 +86,9 @@ one frame, and the whole log.
 | Windows 10 / 11 | double-click `build_launcher.bat` → `jsrf_launcher.exe` |
 | Linux / Steam Deck | `bash build_launcher.sh` → `jsrf_launcher` |
 
-Nothing else is needed. The first time, the script downloads Zig (the C
+If the combo disc scripts or the map change, run
+`py -3 tools\embed_overlay.py <folder>` first (see the comment at the top of
+that script), then build. Nothing else is needed. The first time, the script downloads Zig (the C
 compiler, about 80 MB) and SDL2 into `deps/`. On Linux the launcher uses the
 system's SDL2 (SteamOS has it).
 
@@ -70,7 +97,9 @@ system's SDL2 (SteamOS has it).
 | | |
 |---|---|
 | `src/main.c` | the window: Play, Settings, Build, Update |
-| `src/jobs.c` | setting up the tools, building, updating, starting the game |
+| `src/jobs.c` | setting up the tools, building, updating, starting the game, the combo disc's `SegaJSRF.xbe` |
+| `src/overlay_data.inc` | the combo disc scripts and address map, built into the launcher (made by `tools/embed_overlay.py`) |
+| `tools/embed_overlay.py` | makes `src/overlay_data.inc`; run it before building when a script or the map changes |
 | `src/ini.c` | reading and saving `jsrf.ini`, keeping its comments |
 | `src/util.c` | files, the log, running programs |
 | `src/version.h` | the launcher's version |
