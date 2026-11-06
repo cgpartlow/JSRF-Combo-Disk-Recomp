@@ -1002,7 +1002,7 @@ static bool check_launcher(void)
     pjoin(dl, g_paths.base, "launcher_releases.json");
     snprintf(f, sizeof f, "%s", dl);
     const char *argv[] = { "curl", "-fsSL", "-o", f,
-                           "https://api.github.com/repos/" REPO "/releases?per_page=40", NULL };
+                           "https://api.github.com/repos/" LAUNCHER_REPO "/releases?per_page=40", NULL };
     char out[256];
     if (run_capture(argv, NULL, out, sizeof out) != 0) { remove_file(f); return false; }
     char *j = read_file(f, NULL);
@@ -1040,10 +1040,10 @@ static bool do_self_update(void)
     make_dirs(dl);
 #ifdef _WIN32
     pjoin(arc, dl, "jsrf_launcher-windows.zip");
-    snprintf(url, sizeof url, "https://github.com/" REPO "/releases/download/%s/jsrf_launcher-windows.zip", s_launcher_new);
+    snprintf(url, sizeof url, "https://github.com/" LAUNCHER_REPO "/releases/download/%s/jsrf_launcher-windows.zip", s_launcher_new);
 #else
     pjoin(arc, dl, "jsrf_launcher-linux.tar.gz");
-    snprintf(url, sizeof url, "https://github.com/" REPO "/releases/download/%s/jsrf_launcher-linux.tar.gz", s_launcher_new);
+    snprintf(url, sizeof url, "https://github.com/" LAUNCHER_REPO "/releases/download/%s/jsrf_launcher-linux.tar.gz", s_launcher_new);
 #endif
     status("Downloading launcher %s...", s_launcher_new + 9);
     if (!download(url, arc)) return false;

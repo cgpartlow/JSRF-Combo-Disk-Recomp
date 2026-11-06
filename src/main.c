@@ -1256,7 +1256,7 @@ int main(int argc, char **argv)
     req_refresh();
 
     char title[128];
-    snprintf(title, sizeof title, "Jet Set Radio Future - launcher %s", LAUNCHER_VERSION);
+    snprintf(title, sizeof title, "Jet Set Radio Future - Launcher Version %s", LAUNCHER_VERSION);
     SDL_Window *win = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                        1280, 800, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!win) { fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); return 1; }
